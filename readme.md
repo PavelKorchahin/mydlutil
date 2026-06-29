@@ -28,7 +28,6 @@ The fastest way to use the package is to configure three files and then run one 
 ```text
 mydlutil/
 ├── __init__.py          # Public package imports
-├── _doc.py              # Docstring decorator helper
 ├── _function.py         # Dataset/model callbacks, downloaders, and loader helpers
 ├── accumulator.py       # Numeric accumulator used during training
 ├── charts.py            # Line-chart utility
