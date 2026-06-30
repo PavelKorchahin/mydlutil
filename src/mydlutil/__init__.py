@@ -7,3 +7,4 @@ from .metric import *
 from .model_config import *
 from .test import *
 from .load_model import *
+from .config import *
