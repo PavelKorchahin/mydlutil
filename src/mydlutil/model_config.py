@@ -1,5 +1,5 @@
 # model configuration
-from src.mydlutil import _function as fn
+from . import _function as fn
 import transformers
 from torch import save, load, nn
 from torch.nn import functional as F
