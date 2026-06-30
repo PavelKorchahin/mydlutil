@@ -27,20 +27,24 @@ The fastest way to use the package is to configure three files and then run one 
 
 ```text
 mydlutil/
-├── __init__.py          # Public package imports
-├── _function.py         # Dataset/model callbacks, downloaders, and loader helpers
-├── accumulator.py       # Numeric accumulator used during training
-├── charts.py            # Line-chart utility
-├── config.py            # Project, dataset, pretrained-model, and result-model roots
-├── dataset_config.py    # DATASET_CONFIG registry and dataset path helper
-├── diceloss.py          # DiceLoss and DiceCELoss
-├── img.py               # Image opening and visualization helpers
-├── load_data.py         # Dataset configuration, dataset classes, downloads, and DataLoaders
-├── load_model.py        # Pretrained-model downloading, generation, and loading
-├── metric.py            # Classification/segmentation metrics and visual evaluation
-├── model_config.py      # MODEL_CONFIG registry and result-model save/load helpers
-├── test.py              # Debug printing and text-file output helpers
-└── train.py             # One-epoch and full-training workflows
+├── src/
+│   ├── __init__.py          # Public package imports
+│   ├── _function.py         # Dataset/model callbacks, downloaders, and loader helpers
+│   ├── accumulator.py       # Numeric accumulator used during training
+│   ├── charts.py            # Line-chart utility
+│   ├── config.py            # Project, dataset, pretrained-model, and result-model roots
+│   ├── dataset_config.py    # DATASET_CONFIG registry and dataset path helper
+│   ├── diceloss.py          # DiceLoss and DiceCELoss
+│   ├── img.py               # Image opening and visualization helpers
+│   ├── load_data.py         # Dataset configuration, dataset classes, downloads, and DataLoaders
+│   ├── load_model.py        # Pretrained-model downloading, generation, and loading
+│   ├── metric.py            # Classification/segmentation metrics and visual evaluation
+│   ├── model_config.py      # MODEL_CONFIG registry and result-model save/load helpers
+│   ├── test.py              # Debug printing and text-file output helpers
+│   └── train.py             # One-epoch and full-training workflows
+├── pyproject.toml           # Packaging configuration file
+├── README.md                # Project documentation
+└── LICENSE                  # Open-source license
 ```
 ---
 # Dependencies
@@ -49,9 +53,7 @@ huggingface_hub>=1.15.0
 kagglehub>=1.0.2
 matplotlib>=3.11.0
 numpy>=2.5.0
-opencv_contrib_python>=4.13.0.92
 opencv_python>=4.12.0.88
-opencv_python_headless>=4.13.0.92
 pandas>=3.0.3
 Pillow>=12.2.0
 ptflops>=0.7.5

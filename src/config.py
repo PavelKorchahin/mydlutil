@@ -2,11 +2,15 @@
 from pathlib import Path
 import platform
 SYSTEM = platform.system()  # The system type, such as Windows, Linux, or Darwin
-ROOT = Path('D:/研究生资料/代码/python机器学习代码')  # The root path of the project
-DATASET_DIR = Path('D:/研究生资料/dataset')  # The directory for datasets
-PRETRAINED_MODEL_DIR = Path('D:/研究生资料/pretrained_model')  # The directory for pretrained models
-RESULT_MODEL_DIR = Path('D:/研究生资料/result_model')  # The directory for result models, i.e .pth files
+ROOT = Path('D:/DefaultProject')  # The root path of the project
+DATASET_DIR = Path('D:/Dataset')  # The directory for datasets
+PRETRAINED_MODEL_DIR = Path('D:/Pretrained_model')  # The directory for pretrained models
+RESULT_MODEL_DIR = Path('D:/Result_model')  # The directory for result models, i.e .pth files
 NEED_ACCELERATE_SYSTEM = ('linux', 'unix')  # The system that training will be accelerated, defaultly, training will be accelerated in Linux and Unix system
+PATH = [ROOT, DATASET_DIR, PRETRAINED_MODEL_DIR, RESULT_MODEL_DIR] # All the path we need
+for path in PATH:
+    path.mkdir(parents=True, exist_ok=True)
+
 
 def get_local_path(path: str | Path) -> Path:
     """

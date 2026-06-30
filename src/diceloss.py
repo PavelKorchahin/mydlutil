@@ -30,20 +30,15 @@ class DiceLoss(nn.Module):
         if self.ignore_index is not None:
             valid_mask = (targets != self.ignore_index)   # [B, H, W]
 
-            # 先复制一份，避免改原始 targets
             safe_targets = targets.clone()
 
-            # 把 ignore 的位置临时改成 0（任意合法类别都行）
             safe_targets[~valid_mask] = 0
 
-            # one-hot
             targets_onehot = F.one_hot(safe_targets, num_classes=num_classes)  # [B, H, W, C]
             targets_onehot = targets_onehot.permute(0, 3, 1, 2).float()        # [B, C, H, W]
 
-            # 扩展 mask 到通道维
             valid_mask = valid_mask.unsqueeze(1)  # [B, 1, H, W]
 
-            # 屏蔽无效区域
             probs = probs * valid_mask
             targets_onehot = targets_onehot * valid_mask
 

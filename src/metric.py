@@ -519,7 +519,7 @@ class ClassificationEvaluate:
              ( ``ax`` , ``auc``) where ``ax`` is the axes where the ROC curve was drawn and ``auc`` is the area under the ROC curve.
         """
         assert self.roc_curve, 'please use roc_curve=True'
-        probs = self.all_probs[:, k].cpu().numpy()  # 只取第k类
+        probs = self.all_probs[:, k].cpu().numpy()
         labels = (self.all_labels == k).cpu().numpy().astype(int)
 
 
@@ -1054,14 +1054,12 @@ class EvaluateModules:
                 _ = net(img)
                 feat = activations[0]
 
-                # 取目标层特征图中心位置
                 _, c, h, w = feat.shape
                 center_h, center_w = h // 2, w // 2
                 target = feat[:, :, center_h, center_w].sum()
                 target.backward()
                 grad = img.grad.detach().abs()
 
-                # 多通道梯度求和，得到空间响应
                 grad = grad.sum(dim=1)
                 grad = torch.nn.functional.interpolate(
                     grad.unsqueeze(0),

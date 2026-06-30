@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mydlutil"
+version = "0.1.0"
+authors = [
+    { name = "YuHeng Li", email = "2267175296@qq.com" }
+]
+description = "A custom utility library for deep learning tasks."
+readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+
+# 依赖项列表
+dependencies = [
+    "huggingface_hub>=1.15.0",
+    "kagglehub>=1.0.2",
+    "matplotlib>=3.11.0",
+    "numpy>=2.5.0",
+    "opencv-python>=4.12.0.88",
+    "pandas>=3.0.3",
+    "Pillow>=12.2.0",
+    "ptflops>=0.7.5",
+    "scikit-learn>=1.9.0",
+    "seaborn>=0.13.2",
+    "tifffile>=2025.10.16",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+    "tqdm>=4.67.3",
+    "transformers>=5.8.1",
+    "typing_extensions>=4.15.0",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/PavelKorchahin/mydlutil"
+Repository = "https://github.com/PavelKorchahin/mydlutil"
