@@ -83,7 +83,7 @@ def download_pretrained_model_func_by_huggingface(handle, out_dir):
 def download_pretrained_model_func_by_kaggle(handle, out_dir):
     kagglehub.model_download(handle=handle, output_dir=out_dir)
 def download_dataset_func_by_kaggle(handle, out_dir):
-    kagglehub.dataset_download(handle=handle, output_dir=out_dir)
+    kagglehub.dataset_download(handle=handle, output_dir=out_dir, force_download=True)
 def load_pretrained_model_func_by_huggingface(model_dir, model_cls, **kwargs):
     model = model_cls.from_pretrained(model_dir, **kwargs)
     return model
