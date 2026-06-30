@@ -48,7 +48,7 @@ mydlutil/
 └── LICENSE                  # Open-source license
 ```
 ---
-# Dependencies
+# Dependencies and installation
 ```text
 huggingface_hub>=1.15.0
 kagglehub>=1.0.2
@@ -67,8 +67,15 @@ tqdm>=4.67.3
 transformers>=5.8.1
 typing_extensions>=4.15.0
 ```
-
-Install the versions appropriate for your Python, CUDA, and PyTorch environment. GPU training additionally requires a working CUDA-enabled PyTorch installation when using a CUDA device.
+you can install the libaray with
+```bash
+python -m pip install  git+https://github.com/PavelKorchahin/mydlutil.git
+```
+It is advised to innstall the versions appropriate for your Python, CUDA, and PyTorch environment before installing this library. GPU training additionally requires a working CUDA-enabled PyTorch 
+installation 
+when 
+using a 
+CUDA device.
 
 ---
 # How to Start
