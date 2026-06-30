@@ -4,7 +4,7 @@ from torch import nn
 import warnings
 from pathlib import Path
 from .model_config import get_pretrained_model_path, MODEL_CONFIG
-from src.mydlutil import _function as fn
+from . import _function as fn
 
 warnings.filterwarnings('ignore')
 

@@ -2,7 +2,7 @@
 from pathlib import Path
 import kagglehub
 import tifffile
-from src.mydlutil import _function as fn
+from . import _function as fn
 from .config import DATASET_DIR
 def get_dataset_path(path) -> Path:
     """
