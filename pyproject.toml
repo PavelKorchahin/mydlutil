@@ -39,7 +39,8 @@ dependencies = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+packages = ["mydlutil"]
+package-dir = {mydlutil = "src/mydlutil"}
 
 [project.urls]
 Homepage = "https://github.com/PavelKorchahin/mydlutil"
