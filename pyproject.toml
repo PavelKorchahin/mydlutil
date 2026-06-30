@@ -38,6 +38,8 @@ dependencies = [
     "typing_extensions>=4.15.0",
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [project.urls]
 Homepage = "https://github.com/PavelKorchahin/mydlutil"

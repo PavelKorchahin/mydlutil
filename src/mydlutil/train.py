@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from tqdm import tqdm
-from . import plot_in_one_chart, ClassificationEvaluate
+from src import plot_in_one_chart, ClassificationEvaluate
 from .accumulator import Accumulator
 from .model_config import save_model
 from pathlib import Path

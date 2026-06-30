@@ -1,5 +1,4 @@
 # load data files as a dataset
-import pathlib
 from pathlib import Path
 from typing import Literal, Callable, Sequence, Type
 import numpy as np
@@ -12,7 +11,6 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
-from tqdm import tqdm
 from .dataset_config import DATASET_DIR, DATASET_CONFIG
 from .img import img_show
 from .config import is_accelerate

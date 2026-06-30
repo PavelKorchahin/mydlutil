@@ -1,11 +1,10 @@
 # load pretrained model
 from typing import Callable, Type
-import torch
 from torch import nn
 import warnings
 from pathlib import Path
 from .model_config import get_pretrained_model_path, MODEL_CONFIG
-from . import _function as fn
+from src.mydlutil import _function as fn
 
 warnings.filterwarnings('ignore')
 

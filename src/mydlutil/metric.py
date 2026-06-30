@@ -21,10 +21,9 @@ from matplotlib import pyplot as plt
 from ptflops import get_model_complexity_info
 from sklearn.metrics import roc_curve
 from torch import nn
-from torch.utils.data import Subset, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-from . import charts as charts
-from . import img
+from . import img, charts as charts
 from .load_data import GenericDataset
 
 
@@ -530,7 +529,7 @@ class ClassificationEvaluate:
         for x, y in zip(fpr, tpr):
             xs.append(x)
             ys.append(y)
-        ax = charts.plot_in_one_chart(xs, [ys, [1-x for x in xs]], 'roc curve', 'y=1-x', title=f'auc={roc_auc:.2f}', marker=None, y_lim='no_limit', show=False, ax=ax)
+        ax = charts.plot_in_one_chart(xs, [ys, [1 - x for x in xs]], 'roc curve', 'y=1-x', title=f'auc={roc_auc:.2f}', marker=None, y_lim='no_limit', show=False, ax=ax)
         return ax, roc_auc
 
     def auc(self, k: int) -> float:

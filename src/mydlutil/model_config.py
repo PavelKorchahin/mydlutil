@@ -1,6 +1,5 @@
 # model configuration
-from pathlib import Path
-from . import _function as fn
+from src.mydlutil import _function as fn
 import transformers
 from torch import save, load, nn
 from torch.nn import functional as F
