@@ -8,3 +8,4 @@ from .model_config import *
 from .test import *
 from .load_model import *
 from .config import *
+from .load_data import *
