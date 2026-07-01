@@ -1175,7 +1175,7 @@ def load_data(
         dset_map: Callable = fn.identity,
         test_mode: Literal['test', 'img'] = 'test',
         **kwargs
-)-> tuple[Type[GenericDataset], tuple[DataLoader, DataLoader] | Type[GenericDataset]] | tuple[DataLoader, DataLoader]:
+)-> tuple[Type[GenericDataset], tuple[DataLoader, DataLoader]] | Type[GenericDataset] | tuple[DataLoader, DataLoader]:
     """
     Load dataset and return a class that is a subclass of ``GenericDataset``
     and a pair of instances of ``torch.utils.data.DataLoader`` for training and testing.
