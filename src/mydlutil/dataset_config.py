@@ -127,21 +127,7 @@ DATASET_CONFIG = {
         'handle': 'zhichengwen/voc2012',
         'download_func': kagglehub.datasets.dataset_download
     },
-    'gf':{
-        'name': 'GFDataset',
-        'get_train_data': 'GF/train/images',
-        'get_test_data': 'GF/test/images',
-        'get_train_label': 'GF/train/labels',
-        'get_test_label': 'GF/test/labels',
-        'target_suffixe': '.tif',
-        'num_classes': 2,
-        'class_label': ['land', 'ocean'],
-        'pixelwise': True,
-        'original_size': 512,
-        'open_data': tifffile.imread,
-        'open_label': tifffile.imread,
-        'get_index': fn.get_gf_index
-    }
+
 }
 
 if __name__ == '__main__':

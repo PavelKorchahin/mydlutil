@@ -1262,6 +1262,5 @@ def load_data(
     else:
         dataloader = (DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=drop_last),
                       DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=drop_last))
-
     return (dset, dataloader) if not only_get_dataloader else dataloader
 
