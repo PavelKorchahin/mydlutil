@@ -199,7 +199,10 @@ class DatasetConfig:
 
         device (str): The device to uss when loading the data.
             Default is ``'cpu'`` .
-            If you need accelerate training process, one has better not set device= ``'cuda'`` here when generating or loading dataset,
+            If one need accelerate data loading process,
+            namely, if one customized the processing steps that urgently needed GPU acceleration while loading data,
+            he/she has better not set device= ``'cuda'`` here when generating or loading dataset.
+            It in not advised to set device= ``'cuda'`` here, which might go wrong when using the operation system defined by ``NEED_ACCELERATE_SYSTEM`` in the module ``config``.
             he/she should set device= ``'cuda'`` that a parameter in ``train.train`` function to accelerate training process.
 
         resize_mode ('pad' | 'nopad', optional) : The way of resizing the features and labels(if label is pixelwised) when param ``target_size`` is specified.
@@ -841,12 +844,11 @@ class Dset(ImageDataset):
     def __init__(
             self,
             mode: Literal['train', 'test', 'img'] = 'train',
-            target_size=256,
+            target_size=None,
             dset_size=None,
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
-            device='cuda:0',
             **kwargs
     ):
         config = kwargs.pop('config', None)
@@ -897,7 +899,6 @@ class Dset(ImageDataset):
                 resize_mode=resize_mode,
                 normalize=normalize,
                 transform=transform,
-                device=device,
                 **kwargs
             )
             if get_test_data is None and get_train_data is not None:
@@ -1017,7 +1018,6 @@ def generate_datadset(
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
-            device='cuda:0',
             **kwargs
     ):
         kwargs.update(others)
@@ -1035,8 +1035,7 @@ def generate_datadset(
             dset_size=dset_size,
             resize_mode=resize_mode,
             normalize=normalize,
-            transform=transform,
-            device=device
+            transform=transform
         )
         dset = Dset(**kwargs)
         return dset

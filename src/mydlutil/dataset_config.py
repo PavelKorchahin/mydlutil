@@ -20,6 +20,7 @@ def get_dataset_path(path) -> Path:
     return abspath.resolve()
 
 # a dict of dataset configuration whose key is dataset name and value is a dict containing cofiguration parameters ruled in ``load_data.DatasetConfig``
+# Use ``original_size`` instead of ``target_size`` here, which represents the initial value of the image size.
 # see ``load_data.DatasetConfig`` for more details
 DATASET_CONFIG = {
     'ade20ksegmentation': {
