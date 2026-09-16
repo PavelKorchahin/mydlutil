@@ -95,7 +95,7 @@ def train(
         trainers: Optimizer | Sequence[Optimizer],
         trainers_epoch_threshold: Sequence[int] | int = (0, ),
         device: str = 'cuda:0',
-        lr_scheduler: LRScheduler | Any = None,
+        lr_schedulers: LRScheduler | Sequence[LRScheduler] | Any = None,
         lr_scheduler_type: Literal['epoch', 'batch']='epoch',
         pixelwise: bool = False,
         loss_curve_save: str | Path = None,
@@ -119,7 +119,7 @@ def train(
         loss (torch.nn.Module): Loss function that take model's output and label as input and return the loss scalar.
         num_epochs (int): The number of epochs to train.
         trainers (torch.optim.Optimizer | Sequence[torch.optim.Optimizer]): Optimizer or sequence of optimizers.
-            Used to use different optimizers in different stages of training.
+            Used to use different optimizers in different stages of training matching with ``trainers_epoch_threshold``.
             It can be a single optimizer or a sequence of optimizers.
         trainers_epoch_threshold (Sequence[int] | int, optional): The epoch threshold when to change optimizer.
             Default is ``(0, )`` .
@@ -138,7 +138,9 @@ def train(
 
         device (str, optional): Device to train on.
             Default is ``'cuda:0'`` .
-        lr_scheduler (LRScheduler | Any, optional): Learning rate scheduler.
+        lr_schedulers (LRScheduler | Sequence[LRScheduler] | Any, optional): Learning rate scheduler or sequence of learning rate schedulers.
+            Used to use different schedulers in different stages of training matching with ``trainers_epoch_threshold``.
+            It can be a single learning rate scheduler or a sequence of learning rate schedulers.
             If not specified, there is no learning rate scheduler.
         lr_scheduler_type (Literal['epoch', 'batch'], optional): When to update learning rate scheduler.
 
@@ -209,6 +211,7 @@ def train(
         metrics = (metrics, )
     if not isinstance(trainers, Sequence):
         trainers = (trainers, )
+        lr_schedulers = (lr_schedulers,)
     if isinstance(trainers_epoch_threshold, int):
         trainers_epoch_threshold = (0, trainers_epoch_threshold)
     assert len(trainers)  == len(trainers_epoch_threshold), (f'the length of trainers_epoch_threshold should be the same as the length of trainers, '
@@ -218,6 +221,22 @@ def train(
     assert early_stopping_metric is None or early_stopping_metric in metrics or early_stopping_metric == 'loss', 'early_stopping_metric must be in metrics or loss'
     x, y = None, None
     trainers_idx = -1
+    ax = None
+
+    def transfer_momentum(old_optimizer, new_optimizer):
+        old_state = old_optimizer.state_dict()
+        new_state = new_optimizer.state_dict()
+        old_param_map = {}
+        for i, group in enumerate(old_state["param_groups"]):
+            for j, p_id in enumerate(group["params"]):
+                if p_id in old_state["state"]:
+                    old_param_map[p_id] = old_state["state"][p_id]
+        for i, group in enumerate(new_state["param_groups"]):
+            for j, p_id in enumerate(group["params"]):
+                if p_id in old_param_map:
+                    new_state["state"][p_id] = old_param_map[p_id]
+        new_optimizer.load_state_dict(new_state)
+
     if loss_curve_save is not None:
         x = list(range(num_epochs))
         y = [[] for _ in range(len(metrics) + 1 )]
@@ -225,6 +244,14 @@ def train(
         for epoch in range(num_epochs):
             if epoch in trainers_epoch_threshold:
                 trainers_idx += 1
+                if trainers_idx >= 1:
+                    transfer_momentum(trainers[trainers_idx-1], trainers[trainers_idx])
+                for i in range(epoch):
+                    if lr_scheduler_type == 'epoch':
+                        lr_schedulers[trainers_idx].step()
+                    else:
+                        for _, _ in train_iter:
+                            lr_schedulers.step()
             avg_loss = train_epoch(
                 net=net,
                 train_iter=train_iter,
@@ -233,7 +260,7 @@ def train(
                 device=device,
                 epoch=epoch,
                 pixelwise=pixelwise,
-                lr_scheduler=lr_scheduler,
+                lr_scheduler=lr_schedulers[trainers_idx],
                 lr_scheduler_type=lr_scheduler_type
             )
             test_metrics = ClassificationEvaluate(
@@ -289,7 +316,8 @@ def train(
     except KeyboardInterrupt:
         print('interrupted!, saving...')
         exit_flag = True
-    finally:
+
+    # finally:
         if early_stopping_metric is not None:
             log =  f'end! train epoch num:{epoch_num}, the best epoch num:{best_epoch_num}, the best {early_stopping_metric} is {best_metric:.3f}'
             print(log)
@@ -306,7 +334,7 @@ def train(
                 return_flag = True
 
         if return_flag:
-            return None, epoch_num, best_epoch_num
+            exit(0)
         if log_save is not None:
             log_save = Path(log_save)
             log_save.parent.mkdir(parents=True, exist_ok=True)
@@ -317,14 +345,8 @@ def train(
                     f.writelines(log + '\n')
         if model_save is not None:
             save_model(best_net_dict, model_save)
-        ax = None
         if loss_curve_save is not None:
             ax = plot_in_one_chart(x, y, *(['avg_loss']  + [key for key in test_metrics.keys()]), show=False, save=loss_curve_save)
     if exit_flag:
         exit(0)
     return ax, epoch_num, best_epoch_num
-
-
-
-
-

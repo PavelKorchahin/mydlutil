@@ -18,11 +18,11 @@ def get_pretrained_model_path(path: str | Path) -> Path:
     abspath = PRETRAINED_MODEL_DIR / path if not path.is_absolute() else path
     return abspath.resolve()
 
-def save_model(model: nn.Module, path: str | Path = None) -> None:
+def save_model(model: nn.Module | dict[str,nn.Parameter], path: str | Path = None) -> None:
     """
     Save model to the specified path.
     Args:
-        model (nn.Module): the model to be saved
+        model (nn.Module): the model to be saved or the state dict of the model to be saved
         path (str | pathlib.Path, optional): the path of .pth file to save the model.
             It can be an absolute path or a relative path to the  ``config.RESULT_MODEL_DIR``.
             If not specified, the model will be saved to the default path ``config.RESULT_MODEL_DIR``.
@@ -38,6 +38,8 @@ def save_model(model: nn.Module, path: str | Path = None) -> None:
             path_dir.mkdir(parents=True, exist_ok=True)
     else:
         abspath = RESULT_MODEL_DIR
+    if isinstance(model, nn.Module):
+        model = model.state_dict()
     save(model, abspath.resolve())
 
 def load_model(path: str | Path) -> nn.Module:
