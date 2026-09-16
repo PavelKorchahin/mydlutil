@@ -130,10 +130,10 @@ def train(
               and the first optimizer is used from epoch 0 to 9,
               the second optimizer is used from epoch 10 to 14,
               and the third optimizer is used from epoch 15 to the end of training.
-              The sequence must be a ascending order and start with 0,
+              The sequence must be an ascending order and start with 0,
               and the length of the squence must be the same as the length of trainers.
 
-            - int: If specified by a int ``n``, it is equivalent to ``(0, n)``
+            - int: If specified by an int ``n``, it is equivalent to ``(0, n)``
               in which case there are two optimizers given by ``trainers`` .
 
         device (str, optional): Device to train on.
@@ -150,7 +150,7 @@ def train(
 
         pixelwise (bool, optional): Whether the label is pixelwised.
             Default is ``False`` .
-        loss_curve_save (str | Path, optional): an absolute Path of a img file to save loss curve.
+        loss_curve_save (str | Path, optional): an absolute Path of an img file to save loss curve.
             If not specified, the loss curve will not be drawn and saved.
         metrics (Sequence[str], optional):Names of overall metrics to evaluate on the test dataset.
             Default is ``('accuracy', 'miou')`` .
@@ -166,7 +166,7 @@ def train(
         log_save (str | Path, optional): an absolue Path to save training logs.
             If not specified, the logs will not be saved.
         log_prompt (str, optional): Prompt string to show before logs of each training process.
-            It is used to record the hyper-parameters of each training process in the logs file specified by ``log_save`` .
+            It is used to record the hyperparameters of each training process in the logs file specified by ``log_save`` .
             Default is ``'logs'`` .
         save_query (bool, optional): Whether to query whether to save model, log and loss curve if they are specified respeectively.
 
