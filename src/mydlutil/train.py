@@ -327,7 +327,7 @@ def train(
         return_flag = False
         if save_query:
             try:
-                prmopt = input("Do you want to ave? [y/n]").lower()
+                prmopt = input("Do you want to save? [y/n]").lower()
                 if prmopt != 'y':
                     return_flag = True
             except KeyboardInterrupt:
