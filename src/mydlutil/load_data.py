@@ -1163,7 +1163,7 @@ def get_dataset(nameorconfig: str | dict | DatasetConfig, **kwargs) -> Type[Gene
     return generate_datadset(**config)
 
 
-def load_data(
+def load_dataset_or_dataloader(
         dataset: str | dict | DatasetConfig | Type[GenericDataset],
         batch_size: int = 10,
         drop_last: bool = False,
