@@ -379,7 +379,7 @@ class ClassificationEvaluate:
         Returns:
             The accuracy of class k.
         """
-        return self.confusion_matrix[k][k] / self.true_num[k]
+        return (self.tp(k) + self.tn(k)) / self.size
 
     def overall_accuracy(self) -> float :
         """
@@ -392,13 +392,13 @@ class ClassificationEvaluate:
 
     def mean_overall_accuracy(self) -> float:
         """
-        Get the mean overall accuracy, namely (Σ(number of class k * accuracy of class k)) over k / total number
+        Get the mean overall accuracy, namely (Σ(number of class k * TP(k) ) over k / total number
         It is allowed to be called by its alias ``moa`` .
         Returns:
             The mean overall accuracy.
         """
 
-        return sum([self.p(k) * self._accuracy_kclass(k) for k in range(self.num_class)]) / self.size
+        return sum([self.p(k) * self.tp(k) for k in range(self.num_class)]) / self.size
 
 
     def accuracy(self, mode: Union[Literal['overall', 'mean'], int] = 'overall'):
@@ -409,7 +409,7 @@ class ClassificationEvaluate:
 
                 - ``'overall'`` (default): Get overall accuracy, namely number of correct predictions / total number.
 
-                - ``'mean'``: Get mean overall accuracy, namely (Σ(number of class k * accuracy of class k)) over k / total number
+                - ``'mean'``: Get mean overall accuracy, namely (Σ(number of class k * TP(k))) over k / total number
 
                 - int: Get accuracy of class k, namely (TP(k) + TN(k))/ (TP(k) + TN(k) + FP(k) + FN(k)).
 
