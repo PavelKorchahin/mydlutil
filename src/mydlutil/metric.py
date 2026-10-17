@@ -273,7 +273,7 @@ class ClassificationEvaluate:
         """
         return self.true_num[k] - self.confusion_matrix[k][k]
 
-    def cm(self, k: int | None = None) -> list[list[int]]:
+    def cm(self, k: int | None = None) -> list[list[float]]:
         """
         Get confusion matrix.
         Args:
