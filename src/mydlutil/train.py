@@ -13,8 +13,7 @@ from .model_config import save_model
 from pathlib import Path
 from torch.amp import autocast, GradScaler
 from .config import is_accelerate
-
-
+import copy
 
 def train_epoch(
         net: nn.Module,
@@ -291,7 +290,7 @@ def train(
                     if best_metric + early_stopping_min_delta < early_stopping_metric_value:
                         best_epoch_num = epoch + 1
                         best_metric = early_stopping_metric_value
-                        best_net_dict = net.state_dict()
+                        best_net_dict = copy.deepcopy(net.state_dict())
                         stop_times = 0
                     else:
                         stop_times += 1
@@ -300,7 +299,7 @@ def train(
                     if best_metric - early_stopping_min_delta > early_stopping_metric_value:
                         best_epoch_num = epoch + 1
                         best_metric = early_stopping_metric_value
-                        best_net_dict = net.state_dict()
+                        best_net_dict = copy.deepcopy(net.state_dict())
                         stop_times = 0
                     else:
                         stop_times += 1
@@ -317,7 +316,7 @@ def train(
         print('interrupted!, saving...')
         exit_flag = True
 
-    # finally:
+    finally:
         if early_stopping_metric is not None:
             log =  f'end! train epoch num:{epoch_num}, the best epoch num:{best_epoch_num}, the best {early_stopping_metric} is {best_metric:.3f}'
             print(log)
@@ -344,7 +343,7 @@ def train(
                 for log in logs:
                     f.writelines(log + '\n')
         if model_save is not None:
-            save_model(best_net_dict, model_save)
+            save_model(best_net_dict if best_net_dict is not None else net.state_dict(), model_save)
         if loss_curve_save is not None:
             ax = plot_in_one_chart(x, y, *(['avg_loss']  + [key for key in test_metrics.keys()]), show=False, save=loss_curve_save)
     if exit_flag:
