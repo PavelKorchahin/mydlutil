@@ -1,4 +1,5 @@
 # train module
+import traceback
 from typing import Literal, Sequence, Any
 import matplotlib.pyplot as plt
 import torch
@@ -14,6 +15,7 @@ from pathlib import Path
 from torch.amp import autocast, GradScaler
 from .config import is_accelerate
 import copy
+import logging
 
 def train_epoch(
         net: nn.Module,
@@ -104,7 +106,7 @@ def train(
         log_prompt: str = 'logs',
         save_query: bool = False,
         early_stopping_metric: str = None,
-        early_stopping_times: int = 7,
+        early_stopping_times: int = None,
         early_stopping_mode: Literal["max", "min"]='max',
         early_stopping_min_delta: float = 0.00
 ) -> tuple[plt.Axes, int, int]:
@@ -177,8 +179,8 @@ def train(
             If not specifed, the training will not stop until the number of epochs reaches the value of ``num_epochs``.
             Otherwise, the training will stop when the metric will not get any better within ``early_stopping_times`` consecutive epochs.
             This parameter must be in ``metrics`` or ``'loss'`` .
-        early_stopping_times (int, optional): Number of times the ``early_stopping_metric`` has to get better before stopping the training.
-            Default is ``7`` .
+        early_stopping_times (int, optional): Number of times the ``early_stopping_metric`` has to get better before stopping the training, namrly patience.
+            Default is ``num_epochs`` , which is the same as the training epochs.
         early_stopping_mode ('max', 'min', optional): Mode of early stopping for ``early_stopping_metric``.
 
             - ``'max'`` (default): The larger the ``early_stopping_metric``, the better,such as ``'miou'`` / ``'accuracy'``.
@@ -218,6 +220,8 @@ def train(
                                                              f'the length of trainers_epoch_threshold={len(trainers_epoch_threshold)} ')
     assert trainers_epoch_threshold[0] == 0 , 'the beginning of trainers_epoch_threshold should be 0 '
     assert early_stopping_metric is None or early_stopping_metric in metrics or early_stopping_metric == 'loss', 'early_stopping_metric must be in metrics or loss'
+    if early_stopping_times is None:
+        early_stopping_times = num_epochs
     x, y = None, None
     trainers_idx = -1
     ax = None
@@ -315,7 +319,8 @@ def train(
     except KeyboardInterrupt:
         print('interrupted!, saving...')
         exit_flag = True
-
+    except Exception:
+        logging.error(f"Unexpected exception during training: {traceback.format_exc()}")
     finally:
         if early_stopping_metric is not None:
             log =  f'end! train epoch num:{epoch_num}, the best epoch num:{best_epoch_num}, the best {early_stopping_metric} is {best_metric:.3f}'
