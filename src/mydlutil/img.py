@@ -81,10 +81,11 @@ def img_show(
             i = i + 1
     fig.tight_layout()
     fig.subplots_adjust()
-    if save:
-        fig.savefig(save)
+
     if show:
         plt.show()
+    if save:
+        fig.savefig(save)
     return fig
 
 def open_img(
