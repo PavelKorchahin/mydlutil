@@ -16,6 +16,7 @@ from .img import img_show
 from .config import is_accelerate
 from . import _function as fn
 from .dataset_config import get_dataset_path
+from .test import debug
 
 
 class DatasetConfig:
@@ -199,10 +200,7 @@ class DatasetConfig:
 
         device (str): The device to uss when loading the data.
             Default is ``'cpu'`` .
-            If one need accelerate data loading process,
-            namely, if one customized the processing steps that urgently needed GPU acceleration while loading data,
-            he/she has better not set device= ``'cuda'`` here when generating or loading dataset.
-            It in not advised to set device= ``'cuda'`` here, which might go wrong when using the operation system defined by ``NEED_ACCELERATE_SYSTEM`` in the module ``config``.
+            If you need accelerate training process, one has better not set device= ``'cuda'`` here when generating or loading dataset,
             he/she should set device= ``'cuda'`` that a parameter in ``train.train`` function to accelerate training process.
 
         resize_mode ('pad' | 'nopad', optional) : The way of resizing the features and labels(if label is pixelwised) when param ``target_size`` is specified.
@@ -549,6 +547,7 @@ class GenericDataset(Dataset):
             assert config.preprocess_func is not None, 'preprocess_func must be specified when param preprocess is True'
             self.preprocess()
 
+
     def __getitem__(self, index):
         """
         Get processed item from dataset by index.
@@ -844,15 +843,15 @@ class Dset(ImageDataset):
     def __init__(
             self,
             mode: Literal['train', 'test', 'img'] = 'train',
-            target_size=None,
+            target_size=256,
             dset_size=None,
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
+            device='cuda:0',
             **kwargs
     ):
         config = kwargs.pop('config', None)
-
         if config is None:
             name = kwargs.pop('name')
             get_train_data = kwargs.pop('get_train_data', None)
@@ -899,8 +898,10 @@ class Dset(ImageDataset):
                 resize_mode=resize_mode,
                 normalize=normalize,
                 transform=transform,
+                device=device,
                 **kwargs
             )
+
             if get_test_data is None and get_train_data is not None:
                 config.mode = 'train'
                 config.get_data = get_train_data
@@ -1018,8 +1019,10 @@ def generate_datadset(
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
+            device='cuda:0',
             **kwargs
     ):
+
         kwargs.update(others)
         kwargs.update(
             name=name,
@@ -1035,7 +1038,8 @@ def generate_datadset(
             dset_size=dset_size,
             resize_mode=resize_mode,
             normalize=normalize,
-            transform=transform
+            transform=transform,
+            device=device
         )
         dset = Dset(**kwargs)
         return dset
@@ -1155,10 +1159,10 @@ def get_dataset(nameorconfig: str | dict | DatasetConfig, **kwargs) -> Type[Gene
         config = DATASET_CONFIG.get(nameorconfig, None)
     elif isinstance(nameorconfig, DatasetConfig):
         config = nameorconfig.__dict__
-        if config is None:
-            raise ValueError(f'dataset {nameorconfig} not exist, please download the dataset and configure it.or please offer a dict of a dataset configuration')
     else:
         config = nameorconfig
+    if config is None:
+        raise ValueError(f'dataset {nameorconfig} not exist, please download the dataset and configure it.or please offer a dict of a dataset configuration')
     config.update(**kwargs)
     return generate_datadset(**config)
 
@@ -1262,5 +1266,6 @@ def load_dataset_or_dataloader(
     else:
         dataloader = (DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=drop_last),
                       DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=drop_last))
+
     return (dset, dataloader) if not only_get_dataloader else dataloader
 

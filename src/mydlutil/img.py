@@ -26,8 +26,8 @@ def img_show(
         *titles,
         save: str | Path = None,
         show: bool = True,
-        vmin: int = None,
-        vmax: int = None
+        row: int = None,
+        **kwargs
 ) -> plt.Figure:
     """
     Display a list of images, with each row containing as many images as possible.
@@ -43,10 +43,10 @@ def img_show(
             If not specified, the figure will not be saved.
          show (bool, optional): Whether to display the figure when calling the fuction.
             Default is ``True`` .
-         vmin (int, optional): The minimum value for the color scale.
-            If not specified, it will be shown defaultly.
-         vmax (int, optional): The maximum value for the color scale.
-            If not specified, it will be shown defaultly.
+        row (int, optional): The number of rows of images to be displayed.
+            The number of columns will be automatically calculated if specified.
+            If not specified, it will be calculated automatically based on the number of images.
+        kwargs: Additional keyword arguments which can be passed to function ``matplotlib.pyplot.imshow``.
     Returns:
         The figure which the images are displayed on.
     """
@@ -56,7 +56,8 @@ def img_show(
     if isinstance(imgs, Tensor) or isinstance(imgs, ndarray) or isinstance(imgs, Image):
         imgs = [imgs]
     num = len(imgs)
-    row = int(math.sqrt(num))
+    if row is None:
+        row = int(math.sqrt(num))
     col = math.ceil(num / row)
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(10, 10))
 
@@ -73,7 +74,8 @@ def img_show(
             img = imgs[i]
             if isinstance(img, Tensor) and img.dim() == 3:
                 img = img.permute(1, 2, 0).detach().cpu().numpy()
-            axes[k, j].imshow(img, vmin=vmin, vmax=vmax)
+            axes[k, j].imshow(img, **kwargs)
+            axes[k, j].axis('off')
             if titles:
                 axes[k, j].set_title(titles[i], fontsize=8)
             i = i + 1
