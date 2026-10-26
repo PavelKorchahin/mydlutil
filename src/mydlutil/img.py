@@ -3,6 +3,8 @@ import math
 import warnings
 from pathlib import Path
 from typing import Union
+
+import numpy as np
 from PIL.Image import Image
 from PIL.Image import open as imgopen
 import cv2
@@ -26,16 +28,16 @@ def img_show(
         *titles,
         save: str | Path = None,
         show: bool = True,
-        row: int = None,
-        **kwargs
+        vmin: int = None,
+        vmax: int = None
 ) -> plt.Figure:
     """
     Display a list of images, with each row containing as many images as possible.
     Args:
          imgs (Sequence[torch.Tensor | numpy.ndarray | PIL.Image.Image] | torch.Tensor | PIL.Image.Image | numpy.ndarray): A image or a list of images to be displayed.
-            Each can be instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
-            If a image given by a instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
-            If a image given by a instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
+            Each can be (an)instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
+            If an image given by an instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
+            If an image given by an instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
          *titles: titles for each image.
             It can be a list of strings, or strs in the form of postional parameters, namely ``title1,title2,title3...``.
             Whatever the format of titles, the number of titles should be equal to the number of ``imgs`` and the titles should be matched to ``imgs`` in order.
@@ -43,10 +45,10 @@ def img_show(
             If not specified, the figure will not be saved.
          show (bool, optional): Whether to display the figure when calling the fuction.
             Default is ``True`` .
-        row (int, optional): The number of rows of images to be displayed.
-            The number of columns will be automatically calculated if specified.
-            If not specified, it will be calculated automatically based on the number of images.
-        kwargs: Additional keyword arguments which can be passed to function ``matplotlib.pyplot.imshow``.
+         vmin (int, optional): The minimum value for the color scale.
+            If not specified, it will be shown defaultly.
+         vmax (int, optional): The maximum value for the color scale.
+            If not specified, it will be shown defaultly.
     Returns:
         The figure which the images are displayed on.
     """
@@ -56,8 +58,7 @@ def img_show(
     if isinstance(imgs, Tensor) or isinstance(imgs, ndarray) or isinstance(imgs, Image):
         imgs = [imgs]
     num = len(imgs)
-    if row is None:
-        row = int(math.sqrt(num))
+    row = int(math.sqrt(num))
     col = math.ceil(num / row)
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(10, 10))
 
@@ -74,18 +75,16 @@ def img_show(
             img = imgs[i]
             if isinstance(img, Tensor) and img.dim() == 3:
                 img = img.permute(1, 2, 0).detach().cpu().numpy()
-            axes[k, j].imshow(img, **kwargs)
-            axes[k, j].axis('off')
+            axes[k, j].imshow(img, vmin=vmin, vmax=vmax)
             if titles:
                 axes[k, j].set_title(titles[i], fontsize=8)
             i = i + 1
     fig.tight_layout()
     fig.subplots_adjust()
-
-    if show:
-        plt.show()
     if save:
         fig.savefig(save)
+    if show:
+        plt.show()
     return fig
 
 def open_img(
@@ -93,7 +92,7 @@ def open_img(
         resize: tuple[int] | int = None,
         to_tensor: bool = True,
         is_tiff: bool = False
-) -> Tensor:
+) -> Tensor | np.ndarray:
     """
     Open an image file and convert it into a tensor or a numpy array.
     Args:
@@ -114,7 +113,7 @@ def open_img(
         is_tiff (bool, optional): Whether the image is a tiff file.
 
     Returns:
-        The converted image.
+        The converted image: a tensor if ``to_tensor`` is ``True`` or a numpy array if ``to_tensor`` is ``False``
 
     """
     if not is_tiff:
@@ -131,5 +130,4 @@ def open_img(
     else:
         trans = transforms.Compose(translst)
         return trans(img)
-
 
