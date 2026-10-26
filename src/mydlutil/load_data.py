@@ -1,4 +1,5 @@
 # load data files as a dataset
+import typing
 from pathlib import Path
 from typing import Literal, Callable, Sequence, Type
 import numpy as np
@@ -11,12 +12,12 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
+
 from .dataset_config import DATASET_DIR, DATASET_CONFIG
 from .img import img_show
 from .config import is_accelerate
 from . import _function as fn
 from .dataset_config import get_dataset_path
-from .test import debug
 
 
 class DatasetConfig:
@@ -27,9 +28,9 @@ class DatasetConfig:
 
     Notes:
         - all the path mentioned here can be an absolute path or a path relative to the root directory of the dataset, i.e. ``config.DATASET_DIR``
-        - 'pixelwised' in the following means the label is a image, mask or something like that
-        - If a function need specifying, it had better not be a lambda function or a inner function, that it to say,
-          it need defining outer in the file.
+        - 'pixelwised' in the following means the label is an image, mask or something like that
+        - If a function need specifying, it had better not be a lambda function or an inner function, that it to say,
+          it needs defining outer in the file.
           one can define a custom function in the module  ``_function``  where all kinds of functions store specifically
     Args:
         name (str): The name of the dataset.
@@ -42,10 +43,10 @@ class DatasetConfig:
 
             - a list of the paths of feature files in the dataset where each path can be specified by str or ``pathlib.Path`` object.
 
-            - a list of ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects representing the each image(feature) in the dataset.
+            - a list of ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects representing each image(feature) in the dataset.
               It's not advised to use this form to specify the feature source which will take up lots of memory.
 
-            - a list of other objects representing the each feature in the dataset.
+            - a list of other objects representing each feature in the dataset.
               In the case, one must specify param ``open_data``  by offering the function that transforms the object in this list to any one of
               ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects
 
@@ -66,17 +67,17 @@ class DatasetConfig:
             - (pixelwised labels) a list of the paths of labels file where each path can be specified by str or ``pathlib.Path`` object.
               when the labels are pixelwised about features (i.e. param ``pixelwise`` is ``True`` )
 
-            - (pixelwised labels) a list of ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects representing the each label in the dataset
+            - (pixelwised labels) a list of ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects representing each label in the dataset
               when the labels are pixelwised about features (i.e. param ``pixelwise`` is ``True`` )
               It's not advised to use this form to specify the label source which will take up lots of memory.
 
-            - (pixelwised labels) a list of other objects representing the each label in the dataset.
+            - (pixelwised labels) a list of other objects representing each label in the dataset.
               In the case, one must specify param ``open_label``  by offering the function that transforms the object in this list to any one of
               ``PIL.Image.Image`` / ``numpy.ndarray`` / ``torch.Tensor`` objects
 
             - a callable object that converts each feature path to its corresponding label (if it's simple lable) or label file path (if it's pixelwised lable),
               or converts each feature itself to its corresponding label.
-              It's can be useful when the paths is similar between features and their correspongding labels,
+              It can be useful when the paths are similar between features and their correspongding labels,
               or when converting feature to their correspongding labels just needs a simple function.
 
             .. note::
@@ -151,13 +152,13 @@ class DatasetConfig:
 
             - 'test': it's used for test data. The data under test mode won't be augmented and normalized.
 
-            - 'img': it's used for test data which needs to be augmented and normalized. it's source is still teat data specified by function ``generate_dataset``
+            - 'img': it's used for test data which needs to be augmented and normalized. its source is still teat data specified by function ``generate_dataset``
 
         pixelwise (bool, optional): whether the labels are pixelwised about features.
             Default is ``False`` .
 
         target_size (tuple[int, int] | int, optional): The size of the features and labels(if label is pixelwised) by resizing.
-            It can be a binary tuple of int or a int
+            It can be a binary tuple of int or an int
             If not specfied, it means the size of the features and labels(if label is pixelwised) will not resize and keep their original size.
             In the default case,  if each orginal feature (label) have different sizes, it might go wrong when loading data into batches by function ``load_data``
              (i.e. wrap them into a ``torch.utils.data.DataLoader`` object).
@@ -170,7 +171,7 @@ class DatasetConfig:
                 The ways of resizing see the param ``resize_mode`` for more details.
 
         dset_size (int, optional): The number of items fetched in the dataset.
-            If not specfied or large than the number of all items, it will fetch all items specfied by param ``get_data`` and ``get_label`` in the dataset.
+            If not specfied or larger than the number of all items, it will fetch all items specfied by param ``get_data`` and ``get_label`` in the dataset.
 
         open_data (Callable, optional): The ways to open feature files or transform features specified by param ``get_data`` .
             It can be a callable object that transforms the files or objects specified by param ``get_data``
@@ -228,7 +229,7 @@ class DatasetConfig:
             Default is ``(0.229, 0.224, 0.225)`` that is the standard deviation values of ImageNet.
 
         transform (Callable, optional): A list of callable objects or tuples composed of that type used for data augmentation.
-            It can be a list whose each element can be a callable objects or a binary tuble whose elements are both callable objects.
+            It can be a list whose element can be a callable objects or a binary tuble whose elements are both callable objects.
             If not specified, keep original data without any data augmentation.
 
             - If an element in the list is a callable object: the callable object will map the original feature into augmented feature
@@ -241,7 +242,7 @@ class DatasetConfig:
               If two objects in the binary tuple are instansces of the same class in ``torchvision.transforms`` because of their random seed is fixed to their same index
 
             .. note::
-               - If the transform is specified, augmented data will not include the original data any more.
+               - If the transform is specified, augmented data will not include the original data anymore.
                  If one wants to keep the original data include in augmented data, he/she should add an element ``torch.nn.Identity()`` or
                  ( ``torch.nn.Identity()`` , ``torch.nn.Identity()`` ) in the list.
                - The number of items fetched in the dataset after augmention will be ``N`` * ``dset_size`` where ``N`` is the length of the transform list.
@@ -249,11 +250,11 @@ class DatasetConfig:
 
         channels (list | int, optional): The number of channels in each feature.
             It's often used to align channels in each feature when the number of channels in different features varies or not meeting the requirement.
-            It can be a list of ints or a int
+            It can be a list of ints or an int
             If not specified, the number of channels in each feature will not be changed.
 
             - list of ints: specify the indexs of channels in each feature , where the indexs start from 0.
-              If a int denoted as ``n`` in the list is large than the number of channels denoted as ``ch`` in a  feature ,
+              If an int denoted as ``n`` in the list is larger than the number of channels denoted as ``ch`` in a  feature ,
               it will be viewed as ``n % ch`` .
 
             - int: it is equivalent to list ``[0, ..., n]`` where ``n`` is the specified int value.
@@ -287,8 +288,8 @@ class DatasetConfig:
 
         handle (str, optional): the dataset handle
             It is used to download dataset from this handle by param ``download_func``
-            When the data source given by param ``get_data" and ``get_label`` has no data
-            In this case, one need to type ``y`` to download it
+            When the data source given by param ``get_data`` and ``get_label`` has no data
+            In this case, one need to type ``y`` to download it.
             It should be meet the specifications of the download fuction given by param ``download_func``
             If not specified, ``FileNotFoundError`` will be raised when no data found in data source.
             It's a record about the imformation about dataset source when migrating data
@@ -314,7 +315,7 @@ class DatasetConfig:
                 Since it involves I/O operations, one must be extra careful with preprocessing.
                 It's best to back up the raw data before one start preprocessing to prevent data loss.
                 Preprocessing must only be done when one loads data by this library at the first time.
-                once preprocessed, one should set this parameter to ``False`` so that the I/O operations won't be repeated again when loading the same data again.
+                once preprocessed, one should set this parameter to ``False`` so that the I/O operations won't be repeated when loading the same data again.
 
         preprocess_func (Callabel, optional): The function to preprocess the data.
             It is a function to prepocess the data that takes one parameter named config
@@ -329,7 +330,7 @@ class DatasetConfig:
                 Since it involves I/O operations, one must be extra careful with preprocessing.
                 It's best to back up the raw data before one start preprocessing to prevent data loss.
                 Preprocessing must only be done when one loads data by this library at the first time.
-                once preprocessed, one should set this parameter to ``False`` so that the I/O operations won't be repeated again when loading the same data again.
+                once preprocessed, one should set this parameter to ``False`` so that the I/O operations won't be repeated when loading the same data again.
         **kwargs: Other arguments received, but it is not recommended to use without specifications if you are not familiar with all the code
             See Also the function ``generate_dataset`` in this module for more details.
     """
@@ -547,7 +548,6 @@ class GenericDataset(Dataset):
             assert config.preprocess_func is not None, 'preprocess_func must be specified when param preprocess is True'
             self.preprocess()
 
-
     def __getitem__(self, index):
         """
         Get processed item from dataset by index.
@@ -737,10 +737,13 @@ class ImageDataset(GenericDataset):
                 get_data = sorted([str(p) for p in Path(get_data).rglob('*')
                                    if p.is_file() and p.suffix.lower() in config.target_suffixes
                                    and p.stem in lst_idx])
+
+
             else:
                 get_data = sorted([str(p) for p in Path(get_data).rglob('*')
                                    if p.is_file() and p.suffix.lower() in config.target_suffixes
                                    and config.data_pattern(p.stem)])
+
             if len(get_data) == 0:
                 if handle:
                     is_download = input('file does not exist in the path, please noted its configuration espacially about data path maybe wrong, '
@@ -756,6 +759,7 @@ class ImageDataset(GenericDataset):
                     raise FileNotFoundError('file dose not exist in the path')
 
         if isinstance(get_data, list):
+
             if isinstance(get_data[0], (np.ndarray, Image)):
                 pass
             elif isinstance(get_data[0], (Path, str)):
@@ -774,6 +778,7 @@ class ImageDataset(GenericDataset):
         self.data = get_data
 
         _label = get_label
+
         if isinstance(get_label, (str, Path)):
             get_label = get_dataset_path(get_label)
             if str(config.label_pattern).endswith('.txt') or str(get_label).endswith('.txt'):
@@ -786,6 +791,7 @@ class ImageDataset(GenericDataset):
                     get_label = sorted([p for p in Path(get_label).rglob('*')
                                         if p.is_file() and p.suffix.lower() in config.target_suffixes
                                         and p.stem in lst_idx], key=str)
+
                 else:
                     get_label = lst_idx
             else:
@@ -819,6 +825,7 @@ class ImageDataset(GenericDataset):
             if self.train_data is None:
                 self.train_data = self.data
             if self.train_label is None:
+
                 assert self.label is None or len(self.label) == len(self.data), \
                     f'the length of train data and train label must be equal, the length of train data is {len(self.data)} but the length of train label is {len(self.label)}'
                 self.train_label = self.label
@@ -848,10 +855,10 @@ class Dset(ImageDataset):
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
-            device='cuda:0',
             **kwargs
     ):
         config = kwargs.pop('config', None)
+
         if config is None:
             name = kwargs.pop('name')
             get_train_data = kwargs.pop('get_train_data', None)
@@ -898,10 +905,8 @@ class Dset(ImageDataset):
                 resize_mode=resize_mode,
                 normalize=normalize,
                 transform=transform,
-                device=device,
                 **kwargs
             )
-
             if get_test_data is None and get_train_data is not None:
                 config.mode = 'train'
                 config.get_data = get_train_data
@@ -957,7 +962,7 @@ def generate_datadset(
         train_label_pattern=fn.true,
         test_label_pattern=fn.true,
         **others
-) -> Type[Dset]:
+) -> Type[Dset] | Callable:
     """
     Generate a dataset class(class ``Dset`` ).
     Args:
@@ -1019,10 +1024,8 @@ def generate_datadset(
             resize_mode: Literal['pad', 'nopad'] = 'pad',
             normalize=False,
             transform=None,
-            device='cuda:0',
             **kwargs
     ):
-
         kwargs.update(others)
         kwargs.update(
             name=name,
@@ -1039,7 +1042,6 @@ def generate_datadset(
             resize_mode=resize_mode,
             normalize=normalize,
             transform=transform,
-            device=device
         )
         dset = Dset(**kwargs)
         return dset
@@ -1057,7 +1059,7 @@ def data_show(
     """
     Show the data in specified range.
     If the data is unlabled or get only features, it will only show features.
-    If the data is simple labeled, it will show features titled their corresponding labels.
+    If the data is simplely labeled, it will show features titled their corresponding labels.
     If the data is pixelwise labeled, it will show features and their corresponding labels alternately.
     Args:
         data (GenericDataset): The dataset object to be shown.
@@ -1092,7 +1094,7 @@ def data_show(
 def download_dataset(
         handles: str | list[str],
         names: str | list[str],
-        download_func: Callable[[str, str], None] = fn.download_dataset_func_by_kaggle
+        download_func: Callable[[str | list[str], str | list[str]], None] = fn.download_dataset_func_by_kaggle
 ) -> None:
     """
     Download datasets by ``download_func`` online.
@@ -1116,9 +1118,10 @@ def download_dataset(
               In this case the length of ``names`` should be the same as the length of ``handles`` , namly the number of datasets to be downloaded.
               each name and each handle in ``names`` and ``handles`` must be corresponding one by one.
 
-        download_func(Callable[[str, str], None], optional): The function used to download datasets.
+        download_func(Callable[[str|list[str], str|list[str]], None], optional): The function used to download datasets.
             Default is ``download_dataset_func_by_kaggle`` in the module ``_function`` , which downloads datasets from kaggle, namely ``https://www.kaggle.com`` .
             See the param ``download_func`` in the class ``DatasetConfig`` and ``kagglehub.dataset_download`` for more details.
+            The function must only include two keyword arguments named 'handle' and 'out_dir' which means the datasets download handle and their corresponding directories respectively
 
     """
     if isinstance(handles, str):
@@ -1141,7 +1144,7 @@ def get_dataset(nameorconfig: str | dict | DatasetConfig, **kwargs) -> Type[Gene
         nameorconfig (str | dict | DatasetConfig): the configuration about a dataset.
             It can be a str, a dict, or a DatasetConfig object of the configuration about a dataset.
 
-            - str: A key of the dict ``data_config.DATASET_CONFIG`` where the the configuration about a dataset specfied.
+            - str: A key of the dict ``data_config.DATASET_CONFIG`` where the configuration about a dataset specfied.
 
             - dict: A dict stored configuration imformation about the dataset just like the value (is a dict) of the dict ``data_config.DATASET_CONFIG``
               The dict is the key-value pair format for parameters in the function ``generate_datadset`` and class ``DatasetConfig``
@@ -1159,15 +1162,15 @@ def get_dataset(nameorconfig: str | dict | DatasetConfig, **kwargs) -> Type[Gene
         config = DATASET_CONFIG.get(nameorconfig, None)
     elif isinstance(nameorconfig, DatasetConfig):
         config = nameorconfig.__dict__
+        if config is None:
+            raise ValueError(f'dataset {nameorconfig} not exist, please download the dataset and configure it.or please offer a dict of a dataset configuration')
     else:
         config = nameorconfig
-    if config is None:
-        raise ValueError(f'dataset {nameorconfig} not exist, please download the dataset and configure it.or please offer a dict of a dataset configuration')
     config.update(**kwargs)
     return generate_datadset(**config)
 
 
-def load_dataset_or_dataloader(
+def load_data(
         dataset: str | dict | DatasetConfig | Type[GenericDataset],
         batch_size: int = 10,
         drop_last: bool = False,
@@ -1187,7 +1190,7 @@ def load_dataset_or_dataloader(
         dataset (str | dict | DatasetConfig | Type[GenericDataset]): a dataset class or the configuration about a dataset.
             It can be a str, a dict, or a DatasetConfig object of the configuration about a dataset.
 
-            - str: A key of the dict ``data_config.DATASET_CONFIG`` where the the configuration about a dataset specfied.
+            - str: A key of the dict ``data_config.DATASET_CONFIG`` where the configuration about a dataset specfied.
 
             - dict: A dict stored configuration imformation about the dataset just like the value (is a dict) of the dict ``data_config.DATASET_CONFIG``
               The dict is the key-value pair format for parameters in the function ``generate_datadset`` and class ``DatasetConfig``
