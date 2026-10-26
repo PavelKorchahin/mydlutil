@@ -95,7 +95,7 @@ def generate_pretrained_model(
             and var-keyword parameter kwargs is other parameters when pretrained parameters loaded.
             Default is ``load_pretrained_model_func_by_huggingface`` in the module ``_function``
             where  pretrained parameters is loaded by the statament ``model_cls.from_pretrained(model_dir, **kwargs)``
-            that is standard way of loading pretrained parameters of a model in the ``transformers`` , a library designed to work with ``huggingface`` .
+            that is a standard way of loading pretrained parameters of a model in the ``transformers`` , a library designed to work with ``huggingface`` .
             The module function also offer load function ``load_local_model_by_state_dict``
             which can be used to load pretrained parameters from a .pth file(saved by ``torch.save`` )
             or a dict in the state dict format of the model ``model_cls`` .
