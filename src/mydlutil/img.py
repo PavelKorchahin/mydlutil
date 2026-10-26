@@ -35,9 +35,9 @@ def img_show(
     Display a list of images, with each row containing as many images as possible.
     Args:
          imgs (Sequence[torch.Tensor | numpy.ndarray | PIL.Image.Image] | torch.Tensor | PIL.Image.Image | numpy.ndarray): A image or a list of images to be displayed.
-            Each can be instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
-            If an image given by a instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
-            If an image given by a instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
+            Each can be (an) instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
+            If an image given by an instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
+            If an image given by an instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
          *titles: titles for each image.
             It can be a list of strings, or strs in the form of postional parameters, namely ``title1,title2,title3...``.
             Whatever the format of titles, the number of titles should be equal to the number of ``imgs`` and the titles should be matched to ``imgs`` in order.
