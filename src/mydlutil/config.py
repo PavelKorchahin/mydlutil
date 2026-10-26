@@ -35,6 +35,6 @@ def is_accelerate() -> bool:
     If accelerated, number of workers in dataloader will be added and ``torch.cuda.amp`` will be used when training.
     If one wants to train in other system, please add the name of system in the ``NEED_ACCELERATE_SYSTEM`` .
     Returns:
-        ``True`` if need to be accelerated when trainning models, otherwise ``False``
+        ``True`` if one needs to be accelerated when trainning models, otherwise ``False``
     """
     return SYSTEM.lower() in [sys.lower() for sys in NEED_ACCELERATE_SYSTEM]
