@@ -25,7 +25,7 @@ def debug(
         enter (int, optional): The number of atomic elements to be printed on a line.
             Default is 5 .
         func (Callable, optional): A function to convert each atomic element to needed format before printing.
-            Default is ``lambda x: x``, namely a identity function.
+            Default is ``lambda x: x``, namely an identity function.
         out (Callable, optional): Output function.
             Default is ``print``.
         **kwargs: Any keyword arguments to be printed.
