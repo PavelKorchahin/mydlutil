@@ -54,6 +54,7 @@ class ClassificationEvaluate:
             Default is 'test'.
             See ``DatasetConfig.mode`` for more information.
     """
+
     def __init__(
             self,
             net: nn.Module,
@@ -111,7 +112,7 @@ class ClassificationEvaluate:
         it.close()
         if roc_curve:
             all_probs = torch.cat(all_probs, dim=0) if all_probs else torch.empty((0, num_class))
-            all_labels = torch.cat(all_labels, dim=0) if all_labels else torch.empty((0, ), dtype=torch.long)
+            all_labels = torch.cat(all_labels, dim=0) if all_labels else torch.empty((0,), dtype=torch.long)
         self.confusion_matrix = cm.int().tolist()
         self.true_num = true_num.int().tolist()
         self.total_true = int(cm.diag().sum().item())
@@ -147,7 +148,7 @@ class ClassificationEvaluate:
                 The length of list is equal to ``num``
         """
         result = []
-        for idx in range(start_idx, start_idx+num):
+        for idx in range(start_idx, start_idx + num):
             data, label = self.dataset[idx]
             out = self.net(data.unsqueeze(0).to(self.device)).argmax(dim=1).squeeze(0)
             result.append((data, out, label))
@@ -193,7 +194,7 @@ class ClassificationEvaluate:
             The number of samples whose predicted correctly if ``k`` is None;
             The number of samples whose true class number is k and predicted class number is also k
             or true class number is not k and predicted class number is also not k
-            if ``k`` is a int.
+            if ``k`` is an int.
 
         """
         if k is not None:
@@ -212,9 +213,9 @@ class ClassificationEvaluate:
 
         Returns:
             The number of samples whose predicted incorrectly if ``k`` is None;
-            The number of samples whose whose true class number is k but predicted class number is not k
+            The number of samples whose true class number is k but predicted class number is not k
             or true class number is not k but predicted class number is k.
-            if ``k`` is a int.
+            if ``k`` is an int.
 
         """
         if k is not None:
@@ -286,7 +287,7 @@ class ClassificationEvaluate:
 
         Returns:
             The overall confusion matrix if ``k`` is None;
-            The confusion matrix of class k if ``k`` is a int.
+            The confusion matrix of class k if ``k`` is an int.
 
         """
         if k is not None:
@@ -321,7 +322,7 @@ class ClassificationEvaluate:
         Get the npv (negative predictive value) of class k, namely TN(k) / (TN(k) + FN(k)).
         Args:
             k (int): The class number to be analyzed.
-            zero_define (int, optional): The value defined when All of the prediction results are class k, namely TN(k) + FN(k) =0.
+            zero_define (int, optional): The value defined when all the prediction results are class k, namely TN(k) + FN(k) =0.
                 Default is 0.
         Returns:
             The npv (negative predictive value) of class k.
@@ -329,7 +330,7 @@ class ClassificationEvaluate:
         prediction_negative_num = self.tn(k) + self.fn(k)
         return self.tn(k) / prediction_negative_num if prediction_negative_num != 0 else zero_define
 
-    def recall(self, k: int) -> float :
+    def recall(self, k: int) -> float:
         """
         Get the recall of class k, namely TP(k) / (TP(k) + FN(k)).
         It is allowed to be called by its alias ``sensitivity`` or ``tpr`` .
@@ -338,7 +339,7 @@ class ClassificationEvaluate:
         Returns:
             The recall of class k.
         """
-        return self.tp(k) / (self.tp(k) + self.fn(k))
+        return self.tp(k) / (self.tp(k) + self.fn(k)) if self.tp(k) != 0 else 0
 
     def specificity(self, k: int) -> float:
         """
@@ -379,9 +380,9 @@ class ClassificationEvaluate:
         Returns:
             The accuracy of class k.
         """
-        return (self.tp(k) + self.tn(k)) / self.size
+        return self.confusion_matrix[k][k] / self.true_num[k] if self.confusion_matrix[k][k] != 0 else 0
 
-    def overall_accuracy(self) -> float :
+    def overall_accuracy(self) -> float:
         """
         Get the overall accuracy, namely number of correct predictions / total number
         It is allowed to be called by its alias ``oa`` or ``micro_f1`` .
@@ -392,14 +393,13 @@ class ClassificationEvaluate:
 
     def mean_overall_accuracy(self) -> float:
         """
-        Get the mean overall accuracy, namely (Σ(number of class k * TP(k) ) over k / total number
+        Get the mean overall accuracy, namely (Σ(number of class k * accuracy of class k)) over k / total number
         It is allowed to be called by its alias ``moa`` .
         Returns:
             The mean overall accuracy.
         """
 
-        return sum([self.p(k) * self.tp(k) for k in range(self.num_class)]) / self.size
-
+        return sum([self.p(k) * self._accuracy_kclass(k) for k in range(self.num_class)]) / self.size
 
     def accuracy(self, mode: Union[Literal['overall', 'mean'], int] = 'overall'):
         """
@@ -409,7 +409,7 @@ class ClassificationEvaluate:
 
                 - ``'overall'`` (default): Get overall accuracy, namely number of correct predictions / total number.
 
-                - ``'mean'``: Get mean overall accuracy, namely (Σ(number of class k * TP(k))) over k / total number
+                - ``'mean'``: Get mean overall accuracy, namely (Σ(number of class k * accuracy of class k)) over k / total number
 
                 - int: Get accuracy of class k, namely (TP(k) + TN(k))/ (TP(k) + TN(k) + FP(k) + FN(k)).
 
@@ -424,7 +424,7 @@ class ClassificationEvaluate:
 
     def iou(self, k: int) -> float:
         """
-        Get the IoU（intersection-over-union) score of class k, namely TP(k) / (TP(k) + FP(k) + FN(k)).
+        Get the IoU (intersection-over-union) score of class k, namely TP(k) / (TP(k) + FP(k) + FN(k)).
         Args:
             k (int): The class number to be analyzed.
         Returns:
@@ -468,7 +468,6 @@ class ClassificationEvaluate:
         """
         return sum([self._f1_kclass(k) for k in range(self.num_class)]) / self.num_class
 
-
     def weighted_f1(self):
         """
         Get the weighted F1 score, namely (Σ(number of class k * F1(k)) over k) / total number.
@@ -476,7 +475,6 @@ class ClassificationEvaluate:
             The weighted F1 score.
         """
         return sum([self.p(k) * self._f1_kclass(k) for k in range(self.num_class)]) / self.size
-
 
     def f1(self, mode: Union[Literal['macro', 'micro', 'weighted'], int] = 'macro') -> float:
         """
@@ -520,7 +518,6 @@ class ClassificationEvaluate:
         assert self.roc_curve, 'please use roc_curve=True'
         probs = self.all_probs[:, k].cpu().numpy()
         labels = (self.all_labels == k).cpu().numpy().astype(int)
-
 
         fpr, tpr, thresholds = roc_curve(labels, probs)
         roc_auc = metrics.auc(fpr, tpr)
@@ -605,7 +602,7 @@ class ClassificationEvaluate:
             fpr = round(self.fpr(k), digits)
             iou = round(self.iou(k), digits)
             f1 = round(self._f1_kclass(k), digits)
-            kclass={
+            kclass = {
                 'accuracy': accurary,
                 'precision': precision,
                 'npv': npv,
@@ -618,7 +615,7 @@ class ClassificationEvaluate:
             }
             return kclass
 
-    def get_metrics(self, metrics: Sequence[str], k: int | None =None, digits: int = 3) -> dict[str,float]:
+    def get_metrics(self, metrics: Sequence[str], k: int | None = None, digits: int = 3) -> dict[str, float]:
         """
         Get the metrics specified by ``metrics``.
         Args:
@@ -662,6 +659,7 @@ class ClassificationEvaluate:
                 f'Macro-F1: {self.f1():.2f}\t'
                 f'Weighted-F1: {self.weighted_f1():.2f}\t')
 
+
 class ShowEvaluateResult:
     """
     Show the metrics for a classification model, which shows the result analyzed in the class ``ClassificationEvaluate``.
@@ -694,6 +692,7 @@ class ShowEvaluateResult:
             See ``ClassificationEvaluate.batch_per_roc_sample_point`` for details.
             Default is 1.
     """
+
     def __init__(
             self,
             net: nn.Module = None,
@@ -707,7 +706,7 @@ class ShowEvaluateResult:
             batch_per_roc_sample_point: int = 1
     ):
         if evaluate is None:
-            assert net is not None and test_iter is not None and num_class is not None , 'net, test_iter, num_class should be specified when evaluate is not specified'
+            assert net is not None and test_iter is not None and num_class is not None, 'net, test_iter, num_class should be specified when evaluate is not specified'
             self.ce = ClassificationEvaluate(
                 net,
                 test_iter,
@@ -721,7 +720,7 @@ class ShowEvaluateResult:
         else:
             assert (net is None and test_iter is None and num_class is None
                     and class_label is None and pixelwise == False and device == 'cuda:0'
-                    and roc_curve == False and batch_per_roc_sample_point == 1) , \
+                    and roc_curve == False and batch_per_roc_sample_point == 1), \
                 'other parameters must keep their default values when evaluate is specified'
             self.ce = evaluate
 
@@ -762,9 +761,9 @@ class ShowEvaluateResult:
         ax.set_title(f'ROC of {self.ce.class_label[k]} class\nAUC: {auc:.2f}')
         return ax
 
-    def show_confusion_matrix(self, k: int | None = None, ax :plt.Axes = None) -> plt.Axes:
+    def show_confusion_matrix(self, k: int | None = None, ax: plt.Axes = None) -> plt.Axes:
         """
-        Show the confusion matrix as a axes.
+        Show the confusion matrix as an axes.
         If matrix is large, it may only show partial labels.
         Args:
             k (None | int, optional): The class number.
@@ -783,19 +782,18 @@ class ShowEvaluateResult:
             class_label = [class_label[k], 'not ' + class_label[k]]
         cm = pd.DataFrame(cm, index=class_label, columns=class_label)
         if ax is None:
-            ax = sns.heatmap(cm, annot=False if k is None else True, fmt='d', cmap='coolwarm', annot_kws={"size": 8} )
+            ax = sns.heatmap(cm, annot=False if k is None else True, fmt='d', cmap='coolwarm', annot_kws={"size": 8})
         else:
             sns.heatmap(cm, annot=False if k is None else True, fmt='d', cmap='coolwarm', ax=ax)
         ax.set_title(f'{self.ce.class_label[k] if k is not None else "overall"} confusion matrix')
-
 
         return ax
 
     def show_all_metrics(
             self,
-            k: int | None= None,
+            k: int | None = None,
             metric: list[str] = None,
-            ax:plt.Axes = None
+            ax: plt.Axes = None
     ) -> plt.Axes:
 
         """
@@ -807,12 +805,12 @@ class ShowEvaluateResult:
                 - None (default): Show the overall metrics
 
                 - int: Show the metrics of class k.
-                  
+
 
             metric (list[str], optional): The metrics to be shown.
                 If not specified, all the metrics will be shown, depending on the value of ``k`` .
                 The specified metrics, namely the element in the list must be included as follows:
-                
+
                 - If ``k`` is ``None``, only metrics in the following can be specified, which only strings enclosed in quotes can be elements of the list
                   overall acccuracy: it can be specified by  ``'accuracy'`` / ``'oa'`` /  ``'OA'`` / ``'overall_accuracy'``;
                   mean overall accuracy: it can be specified by  ``'moa'`` / ``'MOA'`` /``'mean_overall_accuracy'`` / ``'mean_accuracy'``;
@@ -820,8 +818,8 @@ class ShowEvaluateResult:
                   frequency-weighted IoU: it can be specified by  ``'FWIoU'`` / ``'fwiou'``;
                   macro F1: it can be specified by  ``'f1'`` / ``'F1'`` / ``'macro_f1'`` / ``'Macro_F1'``;
                   weighted F1: it can be specified by  ``'Weighted_F1'`` / ``'Weighted_f1'`` / ``'weighted_f1'``;
-                
-                - If ``k`` is a int, only metrics in the following can be specified, which only strings enclosed in quotes can be elements of the list 
+
+                - If ``k`` is an int, only metrics in the following can be specified, which only strings enclosed in quotes can be elements of the list
                   accuracy: it can be specified by  ``'accuracy'``;
                   precision: it can be specified by  ``'precision'``;
                   npv: it can be specified by  ``'npv'``;
@@ -872,15 +870,15 @@ class ShowEvaluateResult:
         Args:
             klist (list[int | None], optional): The class number to be shown.
 
-                - If a element denoted as k in the list is a int, it means showing the confusion matrix, metrics and roc curve(if ``roc_curve`` is True) of the class k
+                - If an element denoted as k in the list is an int, it means showing the confusion matrix, metrics and roc curve(if ``roc_curve`` is True) of the class k
                   as a row of charts on the returned figure.
 
-                - If a element in the list is ``None``, it means showing overall confusion matrix, overall metrics.
+                - If an element in the list is ``None``, it means showing overall confusion matrix, overall metrics.
                   as a row of charts on the returned figure.
 
             metric_k (list[str], optional): The metrics to be shown for one class when one element in the ``klist`` is a class number.
                 only metrics in the following can be specified, which only strings enclosed in quotes can be elements of metric_k list.
-                If not specified, all of the following metrics will be shown.
+                If not specified, all the following metrics will be shown.
                 accuracy: it can be specified by  ``'accuracy'``;
                 precision: it can be specified by  ``'precision'``;
                 npv: it can be specified by  ``'npv'``;
@@ -893,7 +891,7 @@ class ShowEvaluateResult:
 
             metric_all (list[str], optional): The overall metrics to be shown when one element in the ``klist`` is ``None``.
                 only metrics in the following can be specified, which only strings enclosed in quotes can be elements of metric_k list.
-                If not specified, all of the following metrics will be shown.
+                If not specified, all the following metrics will be shown.
                 overall acccuracy: it can be specified by  ``'accuracy'`` / ``'oa'`` /  ``'OA'`` / ``'overall_accuracy'``;
                 mean overall accuracy: it can be specified by  ``'moa'`` / ``'MOA'`` /``'mean_overall_accuracy'`` / ``'mean_accuracy'``;
                 mean IoU: it can be specified by  ``'miou'`` / ``'MIoU'`` / ``'mean_iou'`` / ``'mean_IoU'``;
@@ -979,6 +977,7 @@ class ShowEvaluateResult:
         """
         return self.show_result_img(**kwargs), self.show_metric_figure(**kwargs)
 
+
 class EvaluateModules:
     """
     Evaluate Modules
@@ -986,6 +985,7 @@ class EvaluateModules:
         nets (list[nn.Module] | nn.Module): A model or a list of models to be evaluated.
         device (str): The device to evaluating the model .
     """
+
     def __init__(self, nets: list[nn.Module] | nn.Module = None, device: str = 'cuda:0'):
         self.nets = nets
         if isinstance(nets, nn.Module):
@@ -1017,7 +1017,7 @@ class EvaluateModules:
         Returns:
             - A tuple(``ax`` , ``energy_density`` ) if the attribute ``nets`` of the class instance contains only one network
               where ``ax`` is an instance of ``plt.Axes``  containing the heatmap of the effective receptive field of the layer specified by ``target_layer``
-              and ``energy_density`` is an a float roundes to three decimal places representing the percentage of efficient pixels in the effective receptive field.
+              and ``energy_density`` is a float roundes to three decimal places representing the percentage of efficient pixels in the effective receptive field.
             - A tuple(axes, energy_densities) if the attribute ``nets`` of the class instance contains more than one network,
               where ``axes`` is a list of instances of ``plt.Axes`` containing the heatmaps of the effective receptive field of each network,
               and ``energy_densities`` is a list of floats rounded to three decimal places
@@ -1031,8 +1031,8 @@ class EvaluateModules:
             target_layers = [target_layers]
         assert len(target_layers) == len(self.nets), 'The length of target_layers must be equal to the length of nets.'
         for i in range(len(self.nets)):
-            net=self.nets[i]
-            net=net.to(device)
+            net = self.nets[i]
+            net = net.to(device)
             net.eval()
 
             activations = []
@@ -1047,7 +1047,7 @@ class EvaluateModules:
             erf = torch.zeros((1, 10, input_size[0], input_size[1]), device=device)
             for img in imgs:
                 img = img.clone().detach().requires_grad_(True)
-                used_images+=1
+                used_images += 1
                 net.zero_grad()
                 activations.clear()
                 _ = net(img)
@@ -1091,7 +1091,7 @@ class EvaluateModules:
             datasets: GenericDataset | list[GenericDataset],
             monitors: str | list[str],
             batch_size: int = 4,
-            content_in_one_chart: Literal["net", "nets", "n", "datasets","dataset", "dset", "dsets", "d"] = 'net',
+            content_in_one_chart: Literal["net", "nets", "n", "datasets", "dataset", "dset", "dsets", "d"] = 'net',
             k: str | None = None,
             x_label: str | list[str] = None,
             x_axis: str = None
@@ -1148,7 +1148,7 @@ class EvaluateModules:
 
                 - None (default): Show the overall metrics, in which case the param ``monitors`` has to specified overall metrics.
 
-                - int: Show the metrics of class k, in which case the param ``monitors`` has to specified the metrics of class k.
+                - int: Show the metrics of class k, in which case the param ``monitors`` has to specify the metrics of class k.
 
             x_label (list[str] | str, optional): The labels for the x-axis.
                 If not provided, the label will be the name of dataset for 'dataset' mode or the name of network class for 'net' mode.
@@ -1187,7 +1187,7 @@ class EvaluateModules:
                     num_class = dset.num_class
                     test_dataloader = DataLoader(dset, batch_size=batch_size, shuffle=False)
                     evaluate = ClassificationEvaluate(test_iter=test_dataloader, net=net, device=device, num_class=num_class)
-                    metrics_dict:dict[str, float] = evaluate.all_metric(k=k)
+                    metrics_dict: dict[str, float] = evaluate.all_metric(k=k)
                     for j in range(num_metric):
                         monitor_metric = metrics_dict.get(monitors[j], None)
                         assert monitor_metric is not None, f' metric {monitors[j]} is not supported'
@@ -1206,7 +1206,7 @@ class EvaluateModules:
                     num_class = dset.num_class
                     test_dataloader = DataLoader(dset, batch_size=batch_size, shuffle=False)
                     evaluate = ClassificationEvaluate(test_iter=test_dataloader, net=net, device=device, num_class=num_class)
-                    metrics_dict:dict[str, float] = evaluate.all_metric(k=k)
+                    metrics_dict: dict[str, float] = evaluate.all_metric(k=k)
                     for j in range(num_metric):
                         monitor_metric = metrics_dict.get(monitors[j], None)
                         assert monitor_metric is not None, f' metric {monitors[j]} is not supported'
