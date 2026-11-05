@@ -35,11 +35,16 @@ def img_show(
     Display a list of images, with each row containing as many images as possible.
     Args:
          imgs (Sequence[torch.Tensor | numpy.ndarray | PIL.Image.Image] | torch.Tensor | PIL.Image.Image | numpy.ndarray): A image or a list of images to be displayed.
-            Each can be (an) instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
-            If an image given by an instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
-            If an image given by an instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
+            Each can be instance(s) of ``torch.Tensor`` , ``numpy.ndarray`` or ``PIL.Image.Image`` .
+            If a image given by a instance of ``torch.Tensor`` , the shape of the tensor should be ``[channels, height, width]``.
+            If a image given by a instance of ``numpy.ndarray`` , the shape of the array should be ``[height, width, channels]``.
          *titles: titles for each image.
-            It can be a list of strings, or strs in the form of postional parameters, namely ``title1,title2,title3...``.
+            It can be a list or a tuple of strings or dicts, or strs/dict in the form of postional parameters, namely ``title1,title2,title3...``.
+            where ``title_i`` is a str or a dict with key ``title``.
+            If a title is given by a dict, the dict should contain the key ``title`` and other keyword arguments
+            which can be passed to function that set text properties of the title.
+            For example, a dict of a title should be like ``{'title': 'title_name', 'fontweight': 'bold', 'fontfamily': 'SimHei', 'color': 'blue', 'fontsize': 18}`` .
+            If a title is given by a str, the properties of the title will be the default.
             Whatever the format of titles, the number of titles should be equal to the number of ``imgs`` and the titles should be matched to ``imgs`` in order.
          save (str | pathlib.Path, optional): The path where the figure should be saved.
             If not specified, the figure will not be saved.
@@ -52,8 +57,12 @@ def img_show(
     Returns:
         The figure which the images are displayed on.
     """
-    if titles and isinstance(titles[0], Sequence) and not isinstance(titles[0], str):
+    if titles and isinstance(titles[0], (list, tuple)) and not isinstance(titles[0], str):
         titles = titles[0]
+    titles = list(titles)
+    for ind in range(len(titles)):
+        if isinstance(titles[ind], str):
+            titles[ind] = {'title': titles[ind]}
     assert not titles or len(imgs) == len(titles), f'The number of titles ({len(titles)}) does not match the number of images ({len(imgs)})'
     if isinstance(imgs, Tensor) or isinstance(imgs, ndarray) or isinstance(imgs, Image):
         imgs = [imgs]
@@ -68,6 +77,10 @@ def img_show(
         axes = array([axes])
         if col == 1:
             axes = array([axes])
+    elif col == 1:
+        axes = axes.reshape((row, 1))
+
+
     for k in range(0, row):
         for j in range(0, col):
             if i >= len(imgs):
@@ -76,10 +89,13 @@ def img_show(
             img = imgs[i]
             if isinstance(img, Tensor) and img.dim() == 3:
                 img = img.permute(1, 2, 0).detach().cpu().numpy()
+
             axes[k, j].imshow(img, **kwargs)
             axes[k, j].axis('off')
             if titles:
-                axes[k, j].set_title(titles[i], fontsize=8)
+                title = titles[i]['title']
+                titles[i].pop('title')
+                axes[k, j].set_title(title, **titles[i])
             i = i + 1
     fig.tight_layout()
     fig.subplots_adjust()
@@ -88,6 +104,7 @@ def img_show(
     if save:
         fig.savefig(save)
     return fig
+
 
 def open_img(
         filepath: str | Path,
