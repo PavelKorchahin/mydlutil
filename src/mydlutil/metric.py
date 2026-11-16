@@ -20,6 +20,7 @@ import torch
 from matplotlib import pyplot as plt
 from ptflops import get_model_complexity_info
 from sklearn.metrics import roc_curve
+from sympy.abc import lamda
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
@@ -53,6 +54,8 @@ class ClassificationEvaluate:
         mode ('train', 'test', 'img', optional): The mode of the dataset which is the model ``net`` based on.
             Default is 'test'.
             See ``DatasetConfig.mode`` for more information.
+        out (callable, optional): The function to process the output of ``net`` to ensure that its format meets the needs of the metric.
+            Default is lambda x:x.
     """
 
     def __init__(
@@ -65,7 +68,8 @@ class ClassificationEvaluate:
             device: str = 'cuda:0',
             roc_curve: bool = False,
             batch_per_roc_sample_point: int = 1,
-            mode: Literal['train', 'test', 'img'] = 'test'
+            mode: Literal['train', 'test', 'img'] = 'test',
+            out=lambda x: x
     ):
 
         self.net = net.to(device)
@@ -89,7 +93,7 @@ class ClassificationEvaluate:
             for data, label in it:
                 data = data.to(device, non_blocking=True)
                 label = label.to(device, non_blocking=True)
-                output = net(data)
+                output = out(net(data))
                 if output.dim() == 4:
                     output = output.permute(0, 2, 3, 1).reshape(-1, self.num_class)
                     label = label.reshape(-1)
