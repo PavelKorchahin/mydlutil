@@ -55,7 +55,7 @@ class ClassificationEvaluate:
             Default is 'test'.
             See ``DatasetConfig.mode`` for more information.
         out (callable, optional): The function to process the output of ``net`` to ensure that its format meets the needs of the metric.
-            Default is lambda x:x.
+            Default is lambda x:x, namely identity function.
     """
 
     def __init__(

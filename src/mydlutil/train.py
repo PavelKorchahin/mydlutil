@@ -1,6 +1,6 @@
 # train module
 import traceback
-from typing import Literal, Sequence, Any
+from typing import Literal, Sequence, Any, Callable
 import matplotlib.pyplot as plt
 import torch
 from torch import nn
@@ -108,7 +108,8 @@ def train(
         early_stopping_metric: str = None,
         early_stopping_times: int = None,
         early_stopping_mode: Literal["max", "min"]='max',
-        early_stopping_min_delta: float = 0.00
+        early_stopping_min_delta: float = 0.00,
+        evalute_out: Callable = lambda x: x
 ) -> tuple[plt.Axes, int, int]:
     """
     train model
@@ -191,6 +192,10 @@ def train(
             Minimum delta between ``early_stopping_metric`` of the current epoch and the previous best metric
             to consider whether the ``early_stopping_metric`` is getting better.
             Default is ``0.00`` .
+
+        evalute_out(Callable, optional): The function to process the output of ``net`` to ensure that its format meets the needs of the metric, when evaluating the model on the test set.
+            See Also the attribute ``out`` in ``metric.ClassificationEvaluate`` for more information.
+            Default is ``lambda x: x`` ,namely identity function.
     Returns:
         (``ax`` , ``epoch_num``, ``best_epoch_num``)
         where ``ax`` is the plot of loss curve and overall metric given by ``metrics`` curve if the plot is saved or is None if not,
@@ -271,7 +276,8 @@ def train(
                 net=net,
                 test_iter=test_iter,
                 device=device,
-                mode='test'
+                mode='test',
+                out=evalute_out
             ).get_metrics(metrics=metrics)
             torch.cuda.empty_cache()
             k = 1
